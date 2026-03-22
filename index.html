@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizzaria Express 🍕</title>
+
+  <!-- Fontes -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav>
+  <div class="logo">Pizzaria <span>Express</span></div>
+  <button class="cart-btn" onclick="toggleCart()">
+    🛒 Carrinho
+    <span class="cart-badge" id="cartBadge">0</span>
+  </button>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-content">
+    <p class="hero-eyebrow">✦ Feita com amor, assada na pedra ✦</p>
+    <h1 class="hero-title">As melhores pizzas<br>da <em>cidade</em></h1>
+    <p class="hero-sub">Ingredientes frescos · Forno a lenha · Entrega rápida</p>
+  </div>
+</div>
+
+<!-- ── CARDÁPIO ── -->
+<section class="section">
+  <p class="section-label">✦ Cardápio</p>
+  <h2 class="section-title">Escolha a sua favorita</h2>
+  <div class="grid" id="menuGrid"></div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>🍕 Pizzaria Express</p>
+  <p>📍 Rua das Pizzas, 123 — Salvador, BA</p>
+  <p>📞 (71) 99999-9999</p>
+  <p style="margin-top:12px; color:#444;">© 2026 Pizzaria Express. Todos os direitos reservados.</p>
+</footer>
+
+<!-- ── BOTÃO FLUTUANTE (mobile) ── -->
+<button class="cart-fab hidden" id="cartFab" onclick="toggleCart()">
+  🛒 <span id="fabLabel">Carrinho</span>
+  <span class="cart-badge" id="fabBadge" style="background:#fff;color:var(--red);">0</span>
+</button>
+
+<!-- ── OVERLAY ── -->
+<div class="overlay" id="overlay" onclick="toggleCart()"></div>
+
+<!-- ── SIDEBAR CARRINHO ── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h2 class="sidebar-title">🛒 Seu pedido</h2>
+    <button class="close-btn" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="sidebar-items" id="sidebarItems">
+    <div class="empty-msg">Seu carrinho está vazio.<br>Escolha uma pizza! 🍕</div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="total-row">
+      <span class="total-label">Subtotal</span>
+      <span class="total-value" id="totalValue">R$ 0,00</span>
+    </div>
+    <button class="checkout-btn" id="checkoutBtn" onclick="abrirModal()" disabled>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2 3a1 1 0 000 2h.117l2.353 7.941A2 2 0 006.382 14H14a2 2 0 001.98-1.704l1-7H5.5L4 3H2z"/>
+        <circle cx="7.5" cy="17" r="1.5"/>
+        <circle cx="13.5" cy="17" r="1.5"/>
+      </svg>
+      Finalizar Pedido
+    </button>
+    <button class="clear-btn" onclick="limparCarrinho()">🗑 Limpar carrinho</button>
+  </div>
+</div>
+
+<!-- ── MODAL DE CHECKOUT ── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+
+    <div class="modal-header">
+      <div>
+        <h3>Finalizar Pedido</h3>
+        <p>Preencha os dados para envio via WhatsApp</p>
+      </div>
+      <button class="close-btn" onclick="fecharModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- IDENTIFICAÇÃO -->
+      <div class="form-section">
+        <p class="form-section-title">👤 Identificação</p>
+
+        <div class="form-group" id="fg-nome">
+          <label>Nome completo *</label>
+          <input type="text" id="f-nome" placeholder="Seu nome completo"
+            oninput="limparErro('fg-nome')">
+          <span class="field-error">Campo obrigatório</span>
+        </div>
+
+        <div class="form-group" id="fg-tel">
+          <label>Telefone(s) para contato *</label>
+          <div class="phone-list" id="phoneList">
+            <div class="phone-row">
+              <input type="tel" placeholder="(71) 99999-9999"
+                oninput="formatarTelefone(this); limparErro('fg-tel')">
+            </div>
+          </div>
+          <span class="field-error">Informe ao menos um telefone</span>
+          <button class="add-phone-btn" onclick="adicionarTelefone()">＋ Adicionar outro número</button>
+        </div>
+      </div>
+
+      <!-- ENTREGA -->
+      <div class="form-section">
+        <p class="form-section-title">🚚 Entrega</p>
+
+        <div class="form-group" id="fg-metodo">
+          <label>Método de entrega *</label>
+          <select id="f-metodo" onchange="atualizarMetodo(); limparErro('fg-metodo')">
+            <option value="">Selecione...</option>
+            <option value="delivery">🛵 Delivery (entrega no endereço)</option>
+            <option value="retirada">🏪 Retirada no balcão</option>
+          </select>
+          <span class="field-error">Selecione o método</span>
+        </div>
+
+        <!-- Bloco Delivery -->
+        <div id="bloco-endereco" style="display:none;">
+          <div class="form-group" id="fg-end">
+            <label>Endereço completo *</label>
+            <input type="text" id="f-end"
+              placeholder="Digite a rua e número..."
+              autocomplete="off"
+              oninput="limparErro('fg-end'); onEnderecoInput()"
+              onblur="calcularDistancia()">
+            <span class="field-error">Informe o endereço</span>
+          </div>
+          <div class="form-group">
+            <label>Complemento</label>
+            <input type="text" id="f-comp" placeholder="Apto, bloco, referência...">
+          </div>
+          <div class="form-group">
+            <label>Taxa de entrega</label>
+            <div class="taxa-display" id="taxa-display">
+              <span id="taxa-texto">Digite o endereço acima</span>
+              <span class="taxa-valor" id="taxa-valor">—</span>
+            </div>
+            <div id="taxa-dist" style="font-size:0.75rem;color:var(--muted);margin-top:5px;display:none;">
+              📍 <span id="taxa-dist-txt"></span>
+            </div>
+            <div id="taxa-loading" style="font-size:0.75rem;color:var(--muted);margin-top:5px;display:none;">
+              <span class="spinner"></span> Calculando distância...
+            </div>
+            <p class="taxa-info">💡 A taxa é calculada automaticamente pela distância real até o estabelecimento.</p>
+          </div>
+        </div>
+
+        <!-- Bloco Retirada -->
+        <div id="bloco-retirada" style="display:none;">
+          <div class="taxa-display">
+            <span>📍 Rua das Pizzas, 123 — Salvador</span>
+            <span style="color:var(--green);font-weight:700;">Grátis</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESUMO DO PEDIDO -->
+      <div class="form-section">
+        <p class="form-section-title">🍕 Resumo do pedido</p>
+        <div class="order-summary" id="orderSummary"></div>
+      </div>
+
+      <!-- PAGAMENTO -->
+      <div class="form-section">
+        <p class="form-section-title">💳 Pagamento</p>
+
+        <div class="form-group" id="fg-pgto">
+          <label>Forma de pagamento *</label>
+          <select id="f-pgto" onchange="atualizarPagamento(); limparErro('fg-pgto')">
+            <option value="">Selecione...</option>
+            <option value="dinheiro">💵 Dinheiro</option>
+            <option value="pix">📱 Pix</option>
+            <option value="debito">💳 Cartão de Débito</option>
+            <option value="credito">💳 Cartão de Crédito</option>
+          </select>
+          <span class="field-error">Selecione a forma de pagamento</span>
+        </div>
+
+        <div class="form-group" id="fg-troco" style="display:none;">
+          <label>Troco para (opcional)</label>
+          <input type="text" id="f-troco" placeholder="Ex: R$ 50,00">
+        </div>
+
+        <!-- Pix -->
+        <div class="pix-box" id="pixBox">
+          <p class="pix-label">Chave Pix do estabelecimento</p>
+          <p class="pix-key" id="pixKeyDisplay"></p>
+          <p class="pix-label">Envie o comprovante pelo WhatsApp após o pedido.</p>
+          <button class="copy-pix-btn" onclick="copiarPix()">📋 Copiar chave Pix</button>
+        </div>
+
+        <!-- Cartão -->
+        <div class="pix-box" id="cardBox">
+          <p class="pix-label">Link de pagamento</p>
+          <p class="pix-key" id="cardLinkDisplay" style="font-size:0.8rem;"></p>
+          <p class="pix-label">Acesse o link, pague e envie o comprovante pelo WhatsApp.</p>
+          <button class="copy-pix-btn" onclick="copiarLinkCartao()">🔗 Copiar link de pagamento</button>
+        </div>
+      </div>
+
+    </div><!-- /modal-body -->
+
+    <div class="modal-footer">
+      <button class="send-btn" onclick="enviarWhatsApp()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.558 4.12 1.528 5.849L0 24l6.335-1.509A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.372l-.36-.214-3.727.978.996-3.645-.234-.374A9.775 9.775 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
+        </svg>
+        Enviar pedido pelo WhatsApp
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── MODAL MEIO A MEIO ── -->
+<div class="half-modal-overlay" id="halfModalOverlay">
+  <div class="half-modal">
+    <div class="half-modal-header">
+      <div>
+        <h3>🍕 Pizza Meio a Meio</h3>
+        <p>Escolha um sabor para cada metade</p>
+      </div>
+      <button class="close-btn" onclick="fecharModalMeio()">✕</button>
+    </div>
+    <div class="half-modal-body">
+
+      <!-- Slots visuais -->
+      <div class="half-slots">
+        <div class="half-slot" id="slot-1">
+          <span class="half-slot-label">1ª metade</span>
+          <span class="half-slot-empty">Selecione abaixo</span>
+        </div>
+        <div class="half-slot" id="slot-2">
+          <span class="half-slot-label">2ª metade</span>
+          <span class="half-slot-empty">Selecione abaixo</span>
+        </div>
+      </div>
+
+      <!-- Preview de preço -->
+      <div class="half-price-preview">
+        <div>
+          <p class="label">Valor da pizza</p>
+          <p class="half-price-note">Cobrado o maior dos dois sabores</p>
+        </div>
+        <span class="val" id="halfPriceVal">—</span>
+      </div>
+
+      <!-- Lista de sabores -->
+      <span class="half-select-label">Sabores disponíveis</span>
+      <div class="half-select-grid" id="halfSelectGrid"></div>
+
+    </div>
+    <div class="half-modal-footer">
+      <button class="half-confirm-btn" id="halfConfirmBtn" onclick="confirmarMeioAMeio()" disabled>
+        Adicionar ao carrinho
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="app.js"></script>
+</body>
+</html>
